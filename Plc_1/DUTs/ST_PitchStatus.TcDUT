@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_PitchStatus" Id="{62fbdf60-9330-44d9-ac61-558cdf15d732}">
+    <Declaration><![CDATA[TYPE ST_PitchStatus :
+STRUCT
+	ReadyToEnable: BOOL;
+	Ready: BOOL;
+	Warning: BOOL;
+	Error: BOOL;
+	MovingPositive: BOOL;
+	MovingNegative: BOOL;
+	TorqueReduced: BOOL;
+	SyncError: BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

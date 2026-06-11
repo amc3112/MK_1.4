@@ -1,0 +1,122 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <POU Name="FB_Gyro" Id="{0f2f3ce6-7e2a-4f84-bfca-5ea3afa7b9d6}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_Gyro
+VAR_INPUT
+    bCalibrateGyro : BOOL;
+    bResetGyro : BOOL;
+END_VAR
+VAR_OUTPUT
+    fGyroVel : LREAL;
+    fGyroPos : LREAL;
+END_VAR
+VAR
+    bStartTimer : BOOL;
+    bInitDone : BOOL;
+    bInitFilter : BOOL;
+
+    rtCalibrateGyro : R_TRIG;
+    rtResetGyro : R_TRIG;
+    rtPersist : R_TRIG;
+
+    tonCalibrateGyro : TON := (PT := tCALIBRATE_GYRO);
+
+    fGyroVelRawReal AT %I* : REAL;
+	fGyroTemp AT %I* : REAL;
+    fGyroVelRaw : LREAL;
+    fOffset : LREAL;
+
+    fSampleHateHz : LREAL := 4000.0;
+    fCutoffHz : LREAL := 5.0;
+
+    fbMovAvg : FB_MovingAverage;
+    fbWritePersistentData : WritePersistentData;
+
+    nTaskInfo : DINT;
+    fCycleTime : LREAL;
+	nCnt: INT := 1;
+	fGyroTempCali: REAL;
+	fAlpha: LREAL;
+	fGyroTempFilt: LREAL;
+END_VAR
+VAR CONSTANT
+    tCALIBRATE_GYRO : TIME := T#3M;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF NOT bInitDone THEN
+	fGyroTempCali := GVL_Persistent.fGyroTempCali;
+	fbMovAvg(bInit := TRUE, fOffsetInit := GVL_Persistent.fOffset);
+    bInitDone := TRUE;
+END_IF
+
+nTaskInfo := GETCURTASKINDEXEX();
+fCycleTime := TO_LREAL(_TaskInfo[nTaskInfo].CycleTime) / 1.0E07;
+
+fGyroVelRaw := TO_LREAL(fGyroVelRawReal);
+
+rtCalibrateGyro(CLK := bCalibrateGyro);
+IF rtCalibrateGyro.Q THEN
+    bStartTimer := TRUE;
+END_IF
+
+tonCalibrateGyro(IN := bStartTimer);
+fbMovAvg(
+    bStart := (bStartTimer AND NOT tonCalibrateGyro.Q),
+	bInit := FALSE,
+    fGyroVelRaw := fGyroVelRaw,
+    fOffset => fOffset
+);
+
+IF bStartTimer THEN
+	fGyroTempCali := fGyroTemp;
+END_IF
+
+IF tonCalibrateGyro.Q THEN
+    bStartTimer := FALSE;
+    bInitFilter := TRUE;
+	GVL_Control.bCalibrateGyro := FALSE;
+	GVL_Control.bResetGryo := TRUE;
+END_IF
+
+// Temperatur Filter
+fAlpha := 0.00001;
+fGyroTempFilt := fGyroTempFilt + fAlpha * (fGyroTemp - fGyroTempFilt);
+
+// Gyro Velocity med Temperatur kompensation
+fGyroVel := fGyroVelRaw - fOffset - (0.033 * (fGyroTempFilt - fGyroTempCali));
+// Test sample hver 100ms
+IF nCnt >= 40 THEN
+	fGyroPos := fGyroPos + fGyroVel * fCycleTime * 40;
+	nCnt := 1;
+ELSE
+	nCnt := nCnt + 1;
+END_IF
+
+rtResetGyro(CLK := bResetGyro);
+IF rtResetGyro.Q THEN
+    fGyroPos := 0.0;
+END_IF
+
+rtPersist(CLK := tonCalibrateGyro.Q);
+IF rtPersist.Q THEN
+    GVL_Persistent.fOffset := fOffset;
+	GVL_Persistent.fGyroTempCali := fGyroTempCali;
+END_IF
+
+fbWritePersistentData(
+    NETID := '',
+    PORT := 851,
+    START := rtPersist.Q,
+    BUSY => ,
+    ERR => ,
+    ERRID =>
+);
+
+GVL_Gyro.fGyroPos := fGyroPos;
+GVL_Gyro.fGyroVel := fGyroVel;
+GVL_Gyro.fGyroPosHmi := LMOD(fGyroPos, 360.0);
+IF GVL_Gyro.fGyroPosHmi < 0.0 THEN GVL_Gyro.fGyroPosHmi := 360.0 + GVL_Gyro.fGyroPosHmi; END_IF
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

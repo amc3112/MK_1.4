@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<TcSmItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.beckhoff.com/schemas/2012/07/TcSmProject" TcSmVersion="1.0" TcVersion="3.1.4026.21" ClassName="CFlbTermDef" SubType="9099">
+	<DataTypes>
+		<DataType>
+			<Name GUID="{18071995-0000-0000-0000-002000000008}" IecBaseType="true" AutoDeleteType="true" HideSubItems="true">ARRAY [0..0] OF BYTE</Name>
+			<BitSize>8</BitSize>
+			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
+			<ArrayInfo>
+				<LBound>0</LBound>
+				<Elements>1</Elements>
+			</ArrayInfo>
+		</DataType>
+	</DataTypes>
+	<ImageDatas>
+		<ImageData Id="1000">424dd6020000000000003600000028000000100000000e0000000100180000000000a002000000000000000000000000000000000000ffffffffffffffffffffffff000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000c3c3c3c3c3c3000000000000ffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffff000000241ced241cedc3c3c3c3c3c37f7f7f7f7f7f000000ffffffffffffffffffffffffffffffffffffffffffffffff0000004cb1224cb122c3c3c3c3c3c37f7f7f7f7f7f000000ffffffffffffffffffffffffffffffffffffffffffffffff000000cc483fcc483fcc483fcc483fcc483f000000000000ffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000ffffffffffffffffffffffff</ImageData>
+	</ImageDatas>
+	<Box Id="16" BoxType="9099" BoxFlags="#x00000020">
+		<Name>__FILENAME__</Name>
+		<ImageId>1000</ImageId>
+		<EtherCAT SlaveType="2" PdiType="#x040a" MboxDataLinkLayer="true" StateMBoxPolling="true" CycleMBoxPollingTime="0" CoeType="13" VendorId="#x000001dd" ProductCode="#x10400200" RevisionNo="#x00010400" InfoDataAddr="true" TimeoutStateChange1="5000" TimeoutStateChange2="9000" TimeoutMailbox2="2000" PortPhys="17" MaxSlotCount="256" MaxSlotGroupCount="1" SlotPdoIncrement="1" SlotIndexIncrement="16" Type="Delta MS300 EtherCAT(CoE)" Desc="MS300(CMM-EC02 Card)">
+			<SyncMan>0010800026000100010000002200c0008000001026010000</SyncMan>
+			<SyncMan>c010800022000100020000002200c0008000c01022010000</SyncMan>
+			<SyncMan>80110e002400010003000000010000010600801124010000</SyncMan>
+			<SyncMan>80140c002000010004000000010000010600801420010000</SyncMan>
+			<Fmmu>0000000000000000801100020100000001000000000000000000000000000000</Fmmu>
+			<Fmmu>0000000000000000801400010100000002000000000000000000000000000000</Fmmu>
+			<Fmmu>00000000000000000d0800010100000003000000000000000000000000000000</Fmmu>
+			<SuName>RootSync</SuName>
+			<MBoxUserCmdData>020003000a0000001a0000000300000000000000000000000000000000000000200030150200000008005b205030302d3230205d536f75726365206f662046524551202000</MBoxUserCmdData>
+			<MBoxUserCmdData>020003000a0000001a0000000300000000000000000000000000000000000000200030160200000005005b205030302d3231205d536f75726365206f66204f504552202000</MBoxUserCmdData>
+			<MBoxUserCmdData>020003000a0000001a00000003000000000000000000000000000000000000002009301f0200000001005b205030392d3330205d436f6d204465636f646520202020202000</MBoxUserCmdData>
+			<MBoxUserCmdData>020003000a0000001a00000003000000000000000000000000000000000000002005300202000000fe0b5b205030352d3031205d4d6f746f72312052617465642041202000</MBoxUserCmdData>
+			<MBoxUserCmdData>020003000a0000001a00000003000000000000000000000000000000000000002005300402000000b4055b205030352d3033205d4d6f746f72312052617465642020202000</MBoxUserCmdData>
+			<MBoxUserCmdData>020003000a0000001a00000003000000000000000000000000000000000000002001300c0200000058025b205030312d3131205d4c6f77657220426f756e64204652455100</MBoxUserCmdData>
+			<MBoxUserCmdData>020003000a0000001a0000000300000000000000000000000000000000000000200130010200000070175b205030312d3030205d4d4158204f757470757420465245512000</MBoxUserCmdData>
+			<MBoxUserCmdData>020003000a0000001a0000000300000000000000000000000000000000000000200030180200000001005b205030302d3233205d4d6f746f7220446972656374696f6e2000</MBoxUserCmdData>
+			<MBoxUserCmdData>020003000a0000001a00000003000000000000000000000000000000000000002002300e020000001d005b205030322d3133205d4d554c54492d46554e20524c5931202000</MBoxUserCmdData>
+			<MBoxUserCmdData>020003000a0000001900000003000000000000000000000000000000000000002006302d0200000000005b205030362d3434205d53544f204c617463682046756e632000</MBoxUserCmdData>
+			<MBoxUserCmdData>020003000a0000001a0000000300000000000000000000000000000000000000200230230200000001005b205030322d3334205d5370656564204172656120536574202000</MBoxUserCmdData>
+			<Pdo Name="1st TxPDO Mapping" Index="#x1a00" Flags="#x0001" SyncMan="3">
+				<Entry Name="Status Word" Index="#x6041">
+					<Type>UINT</Type>
+				</Entry>
+				<Entry Name="vl velocity demand" Index="#x6043">
+					<Type>INT</Type>
+				</Entry>
+				<Entry Name="Mode Of Operation Display" Index="#x6061">
+					<Type>SINT</Type>
+				</Entry>
+				<Entry>
+					<Type GUID="{18071995-0000-0000-0000-002000000008}">ARRAY [0..0] OF BYTE</Type>
+				</Entry>
+			</Pdo>
+			<Pdo Name="2nd TxPDO Mapping" Index="#x1a01" Flags="#x0000" SyncMan="3">
+				<Entry Name="[ 2104h ]Output current" Index="#x3021" Sub="#x05">
+					<Type>UINT</Type>
+				</Entry>
+				<Entry Name="[ 2207h ]motor speed in rpm estimated" Index="#x3022" Sub="#x08">
+					<Type>UINT</Type>
+				</Entry>
+				<Entry Name="[ 210Fh ]Power output" Index="#x3021" Sub="#x10">
+					<Type>UINT</Type>
+				</Entry>
+			</Pdo>
+			<Pdo Name="3rd TxPDO Mapping" Index="#x1a02" Flags="#x0000">
+				<Entry Name="[ P05-01 ]Motor1 Rated A" Index="#x3005" Sub="#x02">
+					<Type>UINT</Type>
+				</Entry>
+			</Pdo>
+			<Pdo Name="4th TxPDO Mapping" Index="#x1a03" Flags="#x0000"/>
+			<Pdo Name="1st RxPDO Mapping" Index="#x1600" InOut="1" Flags="#x0001" SyncMan="2">
+				<Entry Name="Control Word" Index="#x6040">
+					<Type>UINT</Type>
+				</Entry>
+				<Entry Name="vl target velocity" Index="#x6042">
+					<Type>INT</Type>
+				</Entry>
+				<Entry Name="Mode Of Operation" Index="#x6060">
+					<Type>SINT</Type>
+				</Entry>
+				<Entry>
+					<Type GUID="{18071995-0000-0000-0000-002000000008}">ARRAY [0..0] OF BYTE</Type>
+				</Entry>
+			</Pdo>
+			<Pdo Name="2nd Receive PDO mapping" Index="#x1601" InOut="1" Flags="#x0000" SyncMan="2">
+				<Entry Name="vl Ramp up time" Index="#x604f">
+					<Type>UDINT</Type>
+				</Entry>
+				<Entry Name="vl Ramp down time" Index="#x6050">
+					<Type>UDINT</Type>
+				</Entry>
+			</Pdo>
+			<Pdo Name="3nd Receive PDO mapping" Index="#x1602" InOut="1" Flags="#x0000"/>
+			<Pdo Name="4nd Receive PDO mapping" Index="#x1603" InOut="1" Flags="#x0000"/>
+			<CoeProfile ProfileNo="65938"/>
+		</EtherCAT>
+	</Box>
+</TcSmItem>

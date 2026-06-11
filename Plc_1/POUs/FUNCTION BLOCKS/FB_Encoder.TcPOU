@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <POU Name="FB_Encoder" Id="{4ac3dce2-5f30-4ab4-9d62-02fd95f398ea}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_Encoder
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+	bReady: BOOL;
+	bError: BOOL;
+	nPosition: DINT; // [μm]
+END_VAR
+VAR
+	nStateIo AT %I*: USINT; // 3 means operational, everything else is an error
+	nMeasurementValue AT %I*: DINT; // [μm]
+	nScalingFactor AT %I*: USINT;
+	bMeasurementValueUnsafe AT %I*: BOOL;
+	bOutOfMeasurementRange AT %I*: BOOL;
+	bNoMeasurementData AT %I*: BOOL;
+	bSystemError AT %I*: BOOL;
+	
+	nFreezeCnt: INT;
+	_nPosition: DINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[nPosition := nMeasurementValue;
+
+bError := nStateIo <> 3 OR bMeasurementValueUnsafe OR bOutOfMeasurementRange OR bNoMeasurementData OR bSystemError;
+
+// Make sure encoder is not frozen at value
+IF _nPosition = nPosition THEN 
+	nFreezeCnt := nFreezeCnt + 1;
+ELSE 
+	nFreezeCnt := 0; END_IF
+	
+IF nFreezeCnt >= 100 THEN bError := TRUE; END_IF
+
+bReady := NOT bError;
+
+_nPosition := nPosition;]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

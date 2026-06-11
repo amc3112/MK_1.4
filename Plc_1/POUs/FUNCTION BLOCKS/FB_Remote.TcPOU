@@ -1,0 +1,163 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <POU Name="FB_Remote" Id="{581d1c3c-a474-4c36-ad9a-e4812fa947ca}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_Remote
+VAR_INPUT
+	eId: E_RmtInCtrl;
+	
+	bHub1Running: BOOL;
+	bHub2Running: BOOL;
+	
+	bSomethingFailed: BOOL;
+END_VAR
+VAR_OUTPUT
+	nBtnSum: INT;
+	eRmtCmd: E_RmtCmd;
+	bStopAllHubs: BOOL;
+END_VAR
+VAR_IN_OUT
+	bEstopOk: BOOL;
+	eRmtInCtrl: E_RmtInCtrl;
+END_VAR
+VAR
+	abRmtBtn AT %I*: ARRAY[0..10] OF BOOL;
+	bOn AT %I*: BOOL;
+	bStop AT %I*: BOOL;
+	stRmtLed AT %Q*: ST_RmtLed;
+	rtStop: R_TRIG;
+	
+	tonResetEstop: TON := (PT := tRESET_ESTOP);
+	nIdx: INT;
+	
+	fbAutoBlink: FB_PulseTrain;
+	fbAlarmBlink: FB_PulseTrain;
+END_VAR
+VAR CONSTANT
+	tRESET_ESTOP: TIME := T#2S;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// Decode remote buttons first
+A_RmtCmd();
+
+// Blink functions
+fbAutoBlink(
+    bStart := (GVL_Misc.eApsState = E_ApsState.Auto),
+    tPulseOn := T#500MS,
+    tPulseOff := T#500MS
+);
+
+fbAlarmBlink(bStart := NOT bEstopOk);
+
+// Complete stop - stop both hubs when OFF + STOP are pressed
+rtStop(CLK := ((E_RmtCmd.Off = nBtnSum) AND bStop));
+bStopAllHubs := rtStop.Q;
+
+// Reset Estop
+tonResetEstop(IN := E_RmtCmd.ResetEstop = nBtnSum);
+IF tonResetEstop.Q AND NOT bEstopOk THEN
+    bEstopOk := TRUE;
+    eRmtInCtrl := eId;
+END_IF
+
+// Request Control. Can only be done when there is no one in control
+IF eRmtInCtrl = E_RmtInCtrl.None AND bEstopOk AND eRmtCmd = E_RmtCmd.RequestControl THEN
+    eRmtInCtrl := eId;
+END_IF
+
+// Make remote lose Control if it is turned off or Estop is activated
+IF (eRmtInCtrl = eId AND NOT bOn) OR NOT bEstopOk THEN
+    eRmtInCtrl := E_RmtInCtrl.None;
+END_IF
+
+// Update LEDs last
+A_RmtLed();]]></ST>
+    </Implementation>
+    <Action Name="A_RmtCmd" Id="{f0556cd3-5c7a-4531-98b8-ba477980dc4b}">
+      <Implementation>
+        <ST><![CDATA[nBtnSum := 0;
+FOR nIdx := 0 TO 10 DO
+	IF abRmtBtn[nIdx] THEN
+		nBtnSum := nBtnSum + TO_INT(EXPT(2, nIdx));
+	END_IF
+END_FOR
+
+CASE nBtnSum OF
+	E_RmtCmd.Ccw:
+		eRmtCmd := E_RmtCmd.Ccw;
+		
+	E_RmtCmd.Cw:
+		eRmtCmd := E_RmtCmd.Cw;
+		
+	E_RmtCmd.RequestControl:
+		eRmtCmd := E_RmtCmd.RequestControl;
+		
+	E_RmtCmd.StartHub1:
+		eRmtCmd := E_RmtCmd.StartHub1;
+		
+	E_RmtCmd.ResetEstop:
+		eRmtCmd := E_RmtCmd.ResetEstop;
+		
+	E_RmtCmd.StopHub1:
+		eRmtCmd := E_RmtCmd.StopHub1;
+		
+	E_RmtCmd.StartHub2:
+		eRmtCmd := E_RmtCmd.StartHub2;
+	
+	E_RmtCmd.AutoOnOff:
+		eRmtCmd := E_RmtCmd.AutoOnOff;
+		
+	E_RmtCmd.StopHub2:
+		eRmtCmd := E_RmtCmd.StopHub2;
+ELSE
+	eRmtCmd := E_RmtCmd.None;
+END_CASE]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_RmtLed" Id="{1caf7fc7-9fd4-46f6-9098-5b0888a41005}">
+      <Implementation>
+        <ST><![CDATA[IF bOn THEN
+	stRmtLed.On := TRUE;
+END_IF
+
+IF eRmtInCtrl = eId THEN
+	stRmtLed.InControl := TRUE;
+ELSE
+	stRmtLed.InControl := FALSE;
+END_IF
+
+IF GVL_Misc.eApsState = E_ApsState.Manual THEN
+	IF bHub1Running THEN stRmtLed.Hub1 := TRUE; END_IF
+	IF bHub2Running THEN stRmtLed.Hub2 := TRUE; END_IF
+END_IF
+
+IF GVL_Misc.eApsState = E_ApsState.Auto THEN
+	fbAutoBlink(bStart := GVL_Misc.eApsState = E_ApsState.Auto);
+	IF bHub1Running THEN stRmtLed.Hub1 := fbAutoBlink.bPulse; ELSE stRmtLed.Hub1 := FALSE; END_IF
+	IF bHub2Running THEN stRmtLed.Hub2 := fbAutoBlink.bPulse; ELSE stRmtLed.Hub2 := FALSE; END_IF	
+END_IF
+
+IF NOT bEstopOk THEN
+	stRmtLed.Alarm := fbAlarmBlink.bPulse;
+ELSIF bEstopOk AND bSomethingFailed THEN
+	stRmtLed.Alarm := TRUE;
+ELSE
+	stRmtLed.Alarm := FALSE;
+END_IF
+
+IF NOT bHub1Running THEN stRmtLed.Hub1 := FALSE; END_IF
+IF NOT bHub2Running THEN stRmtLed.Hub2 := FALSE; END_IF
+
+IF NOT bOn THEN
+	stRmtLed.On := FALSE;
+	stRmtLed.InControl := FALSE;
+	stRmtLed.Hub1 := FALSE;
+	stRmtLed.Hub2 := FALSE;
+	stRmtLed.Alarm := FALSE;
+	IF eRmtInCtrl = eId THEN
+		eRmtInCtrl := E_RmtInCtrl.None;
+	END_IF
+END_IF]]></ST>
+      </Implementation>
+    </Action>
+  </POU>
+</TcPlcObject>

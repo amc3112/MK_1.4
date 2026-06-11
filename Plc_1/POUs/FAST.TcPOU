@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <POU Name="FAST" Id="{4d8bb065-94c5-4e1a-9b45-89e5856d3960}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM FAST
+VAR
+    fbGyro : FB_Gyro;
+    rtCalReq : R_TRIG;
+    rtResetReq : R_TRIG;
+
+    bCalPulse : BOOL;
+    bResetPulse : BOOL;
+	
+	fbController: FB_Controller;
+	
+	eRmtInCtrl: E_RmtInCtrl;
+	_eRmtCmd: E_RmtCmd;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// Only receiving Commands form Remote In Control
+IF Main.eRmtInCtrl = MAIN.fbRemote[1].eId THEN
+	_eRmtCmd := MAIN.fbRemote[1].eRmtCmd;
+ELSIF Main.eRmtInCtrl = MAIN.fbRemote[2].eId THEN
+	_eRmtCmd := MAIN.fbRemote[2].eRmtCmd;
+ELSE
+	_eRmtCmd := E_RmtCmd.None;
+END_IF
+
+
+rtCalReq(CLK := GVL_Control.bCalibrateGyro);
+rtResetReq(CLK := GVL_Control.bResetGryo);
+
+bCalPulse := rtCalReq.Q;
+bResetPulse := rtResetReq.Q;
+
+// optional: clear level requests after edge captured
+IF rtCalReq.Q THEN
+    GVL_Control.bResetGryo := FALSE;
+END_IF
+IF rtResetReq.Q THEN
+    GVL_Control.bResetGryo := FALSE;
+END_IF
+
+fbGyro(
+    bCalibrateGyro := bCalPulse,
+    bResetGyro := bResetPulse,
+    fGyroVel => fbController.fGyroVel,
+    fGyroPos => fbController.fGyroPos
+);
+
+fbController(
+	bStart := (GVL_Misc.eApsState = E_ApsState.Auto),
+	bMovSpCw := _eRmtCmd = E_RmtCmd.Cw,
+	bMovSpCcw := _eRmtCmd = E_RmtCmd.Ccw,
+	fPitchLimit := GVL_Constant.fPITCH_LIMIT,
+	fTargetPosition => GVL_Misc.fPitchTargetPos
+	);]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

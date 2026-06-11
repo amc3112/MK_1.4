@@ -1,0 +1,379 @@
+<?xml version="1.0"?>
+<TcSmItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.beckhoff.com/schemas/2012/07/TcSmProject" TcSmVersion="1.0" TcVersion="3.1.4026.23" ClassName="CTComPlcObjDef">
+	<DataTypes>
+		<DataType>
+			<Name GUID="{DB12CD5F-F547-AC1A-4819-37FE28F6C780}" AutoDeleteType="true">ST_PitchStatus</Name>
+			<BitSize>64</BitSize>
+			<SubItem>
+				<Name>ReadyToEnable</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Ready</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>8</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Warning</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>16</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Error</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>24</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>MovingPositive</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>32</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>MovingNegative</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>40</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>TorqueReduced</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>48</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>SyncError</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>56</BitOffs>
+			</SubItem>
+		</DataType>
+		<DataType>
+			<Name GUID="{7A165F81-5703-EC71-D065-B8582C2A4000}" IecBaseType="true" AutoDeleteType="true">ARRAY [0..10] OF BOOL</Name>
+			<BitSize>88</BitSize>
+			<BaseType GUID="{18071995-0000-0000-0000-000000000030}">BOOL</BaseType>
+			<ArrayInfo>
+				<LBound>0</LBound>
+				<Elements>11</Elements>
+			</ArrayInfo>
+		</DataType>
+		<DataType>
+			<Name GUID="{4DC88ACC-2CD8-9C60-FFC6-131F821F7A78}" AutoDeleteType="true">ST_PitchControl</Name>
+			<BitSize>48</BitSize>
+			<SubItem>
+				<Name>Enable</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Reset</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>8</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>ReduceTorque</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>16</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Velocity</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000006}">INT</Type>
+				<BitSize>16</BitSize>
+				<BitOffs>32</BitOffs>
+			</SubItem>
+		</DataType>
+		<DataType>
+			<Name GUID="{A4CB2858-931E-0DF4-FBB8-98721A7FA710}" AutoDeleteType="true">ST_RmtLed</Name>
+			<BitSize>40</BitSize>
+			<SubItem>
+				<Name>On</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>InControl</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>8</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Hub1</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>16</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Hub2</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>24</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Alarm</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>32</BitOffs>
+			</SubItem>
+		</DataType>
+	</DataTypes>
+	<Instance TmcHash="{373BD54F-2B2D-C019-58EC-C341DBF11377}">
+		<Vars VarGrpType="1">
+			<Name>FastTask Inputs</Name>
+			<Var>
+				<Name>FAST.fbGyro.fGyroVelRawReal</Name>
+				<Type>REAL</Type>
+			</Var>
+			<Var>
+				<Name>FAST.fbGyro.fGyroTemp</Name>
+				<Type>REAL</Type>
+			</Var>
+		</Vars>
+		<Vars VarGrpType="1" ContextId="1" AreaNo="16">
+			<Name>PlcTask Inputs</Name>
+			<Var>
+				<Name>MAIN.b24V1Ok</Name>
+				<Type>BOOL</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbEncoder[1].nStateIo</Name>
+				<Comment><![CDATA[ 3 means operational, everything else is an error]]></Comment>
+				<Type>USINT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbEncoder[1].nMeasurementValue</Name>
+				<Comment><![CDATA[ [μm]]]></Comment>
+				<Type>DINT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbEncoder[1].nScalingFactor</Name>
+				<Type>USINT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbEncoder[1].bMeasurementValueUnsafe</Name>
+				<Type>BOOL</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbEncoder[1].bOutOfMeasurementRange</Name>
+				<Type>BOOL</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbEncoder[1].bNoMeasurementData</Name>
+				<Type>BOOL</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbEncoder[1].bSystemError</Name>
+				<Type>BOOL</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbEncoder[2].nStateIo</Name>
+				<Comment><![CDATA[ 3 means operational, everything else is an error]]></Comment>
+				<Type>USINT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbEncoder[2].nMeasurementValue</Name>
+				<Comment><![CDATA[ [μm]]]></Comment>
+				<Type>DINT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbEncoder[2].nScalingFactor</Name>
+				<Type>USINT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbEncoder[2].bMeasurementValueUnsafe</Name>
+				<Type>BOOL</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbEncoder[2].bOutOfMeasurementRange</Name>
+				<Type>BOOL</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbEncoder[2].bNoMeasurementData</Name>
+				<Type>BOOL</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbEncoder[2].bSystemError</Name>
+				<Type>BOOL</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbPitchMotor[1].stPitchStat</Name>
+				<Type GUID="{DB12CD5F-F547-AC1A-4819-37FE28F6C780}">ST_PitchStatus</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbPitchMotor[2].stPitchStat</Name>
+				<Type GUID="{DB12CD5F-F547-AC1A-4819-37FE28F6C780}">ST_PitchStatus</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbThrustMotor[1].fbVfd.nStatusWord</Name>
+				<Type>UINT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbThrustMotor[1].fbVfd.nActualVelocity</Name>
+				<Comment><![CDATA[ [rpm]]]></Comment>
+				<Type>UINT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbThrustMotor[1].fbVfd.nActualCurrent</Name>
+				<Comment><![CDATA[ [1/100 A]]]></Comment>
+				<Type>UINT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbThrustMotor[1].fbVfd.nActualPower</Name>
+				<Comment><![CDATA[ [1/10 kW]]]></Comment>
+				<Type>UINT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbThrustMotor[1].fbVfd.nModeOperationStat</Name>
+				<Type>SINT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbThrustMotor[1].bPtoSensorOk</Name>
+				<Type>BOOL</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbThrustMotor[2].fbVfd.nStatusWord</Name>
+				<Type>UINT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbThrustMotor[2].fbVfd.nActualVelocity</Name>
+				<Comment><![CDATA[ [rpm]]]></Comment>
+				<Type>UINT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbThrustMotor[2].fbVfd.nActualCurrent</Name>
+				<Comment><![CDATA[ [1/100 A]]]></Comment>
+				<Type>UINT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbThrustMotor[2].fbVfd.nActualPower</Name>
+				<Comment><![CDATA[ [1/10 kW]]]></Comment>
+				<Type>UINT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbThrustMotor[2].fbVfd.nModeOperationStat</Name>
+				<Type>SINT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbThrustMotor[2].bPtoSensorOk</Name>
+				<Type>BOOL</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbRemote[1].abRmtBtn</Name>
+				<Type GUID="{7A165F81-5703-EC71-D065-B8582C2A4000}">ARRAY [0..10] OF BOOL</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbRemote[1].bOn</Name>
+				<Type>BOOL</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbRemote[1].bStop</Name>
+				<Type>BOOL</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbRemote[2].abRmtBtn</Name>
+				<Type GUID="{7A165F81-5703-EC71-D065-B8582C2A4000}">ARRAY [0..10] OF BOOL</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbRemote[2].bOn</Name>
+				<Type>BOOL</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbRemote[2].bStop</Name>
+				<Type>BOOL</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.b24V2Ok</Name>
+				<Type>BOOL</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fGyroVel</Name>
+				<Type>LREAL</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fGyroPos</Name>
+				<Type>LREAL</Type>
+			</Var>
+		</Vars>
+		<Vars VarGrpType="2" ContextId="1" AreaNo="17">
+			<Name>PlcTask Outputs</Name>
+			<Var>
+				<Name>MAIN.fbPitchMotor[1].stPitchCtrl</Name>
+				<Type GUID="{4DC88ACC-2CD8-9C60-FFC6-131F821F7A78}">ST_PitchControl</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbPitchMotor[2].stPitchCtrl</Name>
+				<Type GUID="{4DC88ACC-2CD8-9C60-FFC6-131F821F7A78}">ST_PitchControl</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbThrustMotor[1].fbVfd.nControlWord</Name>
+				<Type>UINT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbThrustMotor[1].fbVfd.nTargetVelocity</Name>
+				<Comment><![CDATA[ [rpm]]]></Comment>
+				<Type>INT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbThrustMotor[1].fbVfd.nModeOperationCtrl</Name>
+				<Type>SINT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbThrustMotor[1].fbVfd.nRampUpTime</Name>
+				<Comment><![CDATA[ [ms]]]></Comment>
+				<Type>UDINT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbThrustMotor[1].fbVfd.nRampDownTime</Name>
+				<Comment><![CDATA[ [ms]]]></Comment>
+				<Type>UDINT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbThrustMotor[2].fbVfd.nControlWord</Name>
+				<Type>UINT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbThrustMotor[2].fbVfd.nTargetVelocity</Name>
+				<Comment><![CDATA[ [rpm]]]></Comment>
+				<Type>INT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbThrustMotor[2].fbVfd.nModeOperationCtrl</Name>
+				<Type>SINT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbThrustMotor[2].fbVfd.nRampUpTime</Name>
+				<Comment><![CDATA[ [ms]]]></Comment>
+				<Type>UDINT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbThrustMotor[2].fbVfd.nRampDownTime</Name>
+				<Comment><![CDATA[ [ms]]]></Comment>
+				<Type>UDINT</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbRemote[1].stRmtLed</Name>
+				<Type GUID="{A4CB2858-931E-0DF4-FBB8-98721A7FA710}">ST_RmtLed</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.fbRemote[2].stRmtLed</Name>
+				<Type GUID="{A4CB2858-931E-0DF4-FBB8-98721A7FA710}">ST_RmtLed</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.bGreenLight</Name>
+				<Type>BOOL</Type>
+			</Var>
+			<Var>
+				<Name>MAIN.bWarningBuzzer</Name>
+				<Type>BOOL</Type>
+			</Var>
+		</Vars>
+	</Instance>
+</TcSmItem>

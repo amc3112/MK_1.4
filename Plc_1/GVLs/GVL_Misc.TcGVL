@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <GVL Name="GVL_Misc" Id="{a1ed56f2-f54d-4a5c-9ac1-2c19832f26fc}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	eApsState: E_ApsState;
+	fPitchTargetPos: LREAL;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

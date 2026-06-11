@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <GVL Name="GVL_Constant" Id="{8c3d8618-f603-441b-bce0-c15ba0d3c4ed}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL CONSTANT
+	fPITCH_LIMIT: LREAL := 10.8; // [deg]
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_ApsState" Id="{00eb77fd-f69d-4d0e-bb56-7d9d293391ef}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_ApsState :
+(
+	None := 0,
+	Off,
+	Manual,
+	Auto
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

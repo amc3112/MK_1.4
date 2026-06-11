@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <GVL Name="GVL_Persistent" Id="{7620b80f-04d8-45ed-8447-32427c1ab41a}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL PERSISTENT
+	fOffset: LREAL := 0.0;
+	fGyroTempCali: REAL := 0.0;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

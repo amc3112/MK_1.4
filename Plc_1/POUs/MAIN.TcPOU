@@ -1,0 +1,293 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <POU Name="MAIN" Id="{337c3ea0-8f14-4aab-8247-79c8eb0246b9}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+	sSwVersion: STRING := 'V1.0.0.0'; // digit 1 = main SW version, digit 2 = sub SW version, digit 3 = main HMI version, digit 4 = sub HMI version
+	bEstopOk: BOOL;
+	
+	fPitchTargetPos: LREAL;
+	
+	fbEncoder: ARRAY[1..2] OF FB_Encoder;
+	fbPitchMotor: ARRAY[1..2] OF FB_PitchMotor;
+	fbThrustMotor: ARRAY[1..2] OF FB_ThrustMotor;
+	fbRemote: ARRAY[1..2] OF FB_Remote;
+	
+	fbDataLogger: FB_DataLogger;
+	
+	bHubReady: ARRAY[1..2] OF BOOL;
+	bStartHub: ARRAY[1..2] OF BOOL;
+
+	eRmtInCtrl: E_RmtInCtrl;
+	eAutoOnOff: E_AutoOnOff;
+	
+	nIdx: INT;
+	
+	_eRmtCmd: E_RmtCmd;
+	
+	b24V1Ok AT %I*: BOOL;
+	b24V2Ok AT %I*: BOOL;
+	
+	bGreenLight AT %Q*: BOOL;
+	bWarningBuzzer AT %Q*: BOOL;
+	fRefPos: LREAL;
+	
+	fGyroVel AT %I*: LREAL;
+	fGyroPos AT %I*: LREAL;
+	
+	tonWarningBuzzer: TON := (PT := tWARNING_BUZZER);
+	tonStartupHub1: TON := (PT := tSTARTUP_HUB);
+	tonStartupHub2: TON := (PT := tSTARTUP_HUB);
+	tonInitialization: TON := (PT := tINITIALIZATION);
+	rtrigAutoOnOff: R_TRIG;
+END_VAR
+VAR CONSTANT
+	tWARNING_BUZZER: TIME := T#5S;
+	tSTARTUP_HUB: TIME := T#1S;
+	tINITIALIZATION: TIME := T#20S;
+	tAUTO_ON_OFF: TIME := T#1MS;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// ---------------------------------------------------------
+// 1. Update remotes first
+// ---------------------------------------------------------
+FOR nIdx := 1 TO 2 DO
+    fbRemote[nIdx](
+        bEstopOk := bEstopOk,
+        eRmtInCtrl := eRmtInCtrl,
+        eId := nIdx,
+        bHub1Running := fbThrustMotor[1].stVfdOut.Running,
+        bHub2Running := fbThrustMotor[2].stVfdOut.Running,
+        bSomethingFailed := NOT (bHubReady[1] AND bHubReady[2] AND b24V1Ok AND b24V2Ok)
+    );
+END_FOR
+
+
+// ---------------------------------------------------------
+// 2. Only receive commands from Remote In Control
+// ---------------------------------------------------------
+IF eRmtInCtrl = fbRemote[1].eId THEN
+    _eRmtCmd := fbRemote[1].eRmtCmd;
+ELSIF eRmtInCtrl = fbRemote[2].eId THEN
+    _eRmtCmd := fbRemote[2].eRmtCmd;
+ELSE
+    _eRmtCmd := E_RmtCmd.None;
+END_IF
+
+
+// ---------------------------------------------------------
+// 3. Complete stop - stop both hubs
+// ---------------------------------------------------------
+IF fbRemote[1].bStopAllHubs OR fbRemote[2].bStopAllHubs THEN
+    bStartHub[1] := FALSE;
+    bStartHub[2] := FALSE;
+    _eRmtCmd := E_RmtCmd.None;
+END_IF
+
+
+// ---------------------------------------------------------
+// 4. APS state machine - only once
+// ---------------------------------------------------------
+A_ApsStateMachine();
+
+
+// Safety: force stop again after state machine
+IF fbRemote[1].bStopAllHubs OR fbRemote[2].bStopAllHubs THEN
+    bStartHub[1] := FALSE;
+    bStartHub[2] := FALSE;
+END_IF
+
+
+// ---------------------------------------------------------
+// 5. Initialization check
+// ---------------------------------------------------------
+tonInitialization(IN := bEstopOk);
+
+IF NOT (bHubReady[1] OR bHubReady[2]) AND tonInitialization.Q THEN
+    bEstopOk := FALSE;
+END_IF
+
+
+// ---------------------------------------------------------
+// 6. Audible alarm when the first Hub is started
+// ---------------------------------------------------------
+tonWarningBuzzer(IN := bWarningBuzzer);
+
+IF tonWarningBuzzer.Q THEN
+    bWarningBuzzer := FALSE;
+END_IF
+
+
+// ---------------------------------------------------------
+// 7. Startup timeout Hub 1
+// ---------------------------------------------------------
+tonStartupHub1(IN := bStartHub[1] AND NOT bWarningBuzzer);
+
+IF tonStartupHub1.Q AND NOT fbThrustMotor[1].fbVfd.stOutput.Running THEN
+    bStartHub[1] := FALSE;
+END_IF
+
+
+// ---------------------------------------------------------
+// 8. Startup timeout Hub 2
+// ---------------------------------------------------------
+tonStartupHub2(IN := bStartHub[2] AND NOT bWarningBuzzer);
+
+IF tonStartupHub2.Q AND NOT fbThrustMotor[2].fbVfd.stOutput.Running THEN
+    bStartHub[2] := FALSE;
+END_IF
+
+
+// ---------------------------------------------------------
+// 9. Pitch target position
+// Reverse direction of Pitch Motor in hub 1
+// ---------------------------------------------------------
+fbPitchMotor[1](fTargetPos := -fPitchTargetPos);
+fbPitchMotor[2](fTargetPos := fPitchTargetPos);
+
+
+// ---------------------------------------------------------
+// 10. Update hubs
+// ---------------------------------------------------------
+FOR nIdx := 1 TO 2 DO
+
+    IF fbThrustMotor[nIdx].stVfdOut.Ramping THEN
+        fbPitchMotor[nIdx].fTargetPos := 0.0;
+    END_IF
+
+    fbEncoder[nIdx]();
+
+    fbPitchMotor[nIdx](
+        bEnable := bEstopOk,
+        nEncPos := fbEncoder[nIdx].nPosition,
+        fPitchLimit := GVL_Constant.fPITCH_LIMIT
+    );
+
+    fbThrustMotor[nIdx](
+        bEnable := bEstopOk,
+        bStart := bStartHub[nIdx] AND NOT bWarningBuzzer
+    );
+
+    bHubReady[nIdx] :=
+        fbEncoder[nIdx].bReady
+        AND fbPitchMotor[nIdx].bReady
+        AND fbThrustMotor[nIdx].fbVfd.stOutput.ReadyToRun
+        AND NOT fbThrustMotor[nIdx].bBrakeNotReleasedError
+        AND NOT fbThrustMotor[nIdx].bPtoSensorError;
+
+    IF NOT bHubReady[nIdx] THEN
+        bStartHub[nIdx] := FALSE;
+    END_IF
+
+END_FOR
+
+
+// ---------------------------------------------------------
+// 11. Green light
+// ---------------------------------------------------------
+bGreenLight :=
+    bHubReady[1]
+    AND bHubReady[2]
+    AND b24V1Ok
+    AND b24V2Ok;
+	
+// ---------------------------------------------------------
+// 12. Data Logger
+// ---------------------------------------------------------
+fbDataLogger(bEnableLogging := bEstopOk);]]></ST>
+    </Implementation>
+    <Action Name="A_ApsStateMachine" Id="{030612b2-b3f2-4953-84bb-665b5dc2688b}">
+      <Implementation>
+        <ST><![CDATA[// APS State is None until bEstopOk = TRUE
+IF NOT bEstopOk THEN
+	GVL_Misc.eApsState := E_ApsState.None;
+ELSIF bEstopOk AND NOT (fbThrustMotor[1].stVfdOut.Running OR fbThrustMotor[2].stVfdOut.Running) THEN
+	GVL_Misc.eApsState := E_ApsState.Off;
+END_IF
+
+
+
+// Switch to Auto On Off
+rtrigAutoOnOff(clk := (_eRmtCmd = E_RmtCmd.AutoOnOff));
+
+CASE GVL_Misc.eApsState OF
+		
+	E_ApsState.Off:		// --- Off --- //
+		IF _eRmtCmd = E_RmtCmd.Ccw THEN
+			fPitchTargetPos := GVL_Constant.fPITCH_LIMIT;
+		ELSIF _eRmtCmd = E_RmtCmd.Cw THEN
+			fPitchTargetPos := - GVL_Constant.fPITCH_LIMIT;
+		ELSE
+			fPitchTargetPos := 0.0;
+		END_IF
+		
+		IF _eRmtCmd = E_RmtCmd.StartHub1 THEN
+			bWarningBuzzer := TRUE;
+			bStartHub[1] := TRUE;
+		END_IF
+		
+		IF _eRmtCmd = E_RmtCmd.StartHub2 THEN
+			bWarningBuzzer := TRUE;
+			bStartHub[2] := TRUE;
+		END_IF
+		
+		IF fbThrustMotor[1].stVfdOut.Running OR fbThrustMotor[2].stVfdOut.Running THEN
+			GVL_Misc.eApsState := E_ApsState.Manual;
+		END_IF
+		
+	E_ApsState.Manual:	// --- Manual --- //
+		// Go to Auto if Remote in Control looses connection
+		IF eRmtInCtrl = E_RmtInCtrl.None THEN
+			GVL_Misc.eApsState := E_ApsState.Auto;
+		END_IF
+		
+		// Pitching back and forth
+		IF _eRmtCmd = E_RmtCmd.Ccw THEN
+			fPitchTargetPos := GVL_Constant.fPITCH_LIMIT;
+		ELSIF _eRmtCmd = E_RmtCmd.Cw THEN
+			fPitchTargetPos := -GVL_Constant.fPITCH_LIMIT;
+		ELSE
+			fPitchTargetPos := 0.0;
+		END_IF
+		
+		// Starting and stopping the Hubs
+		IF _eRmtCmd = E_RmtCmd.StartHub1 THEN
+			bStartHub[1] := TRUE;
+		ELSIF _eRmtCmd = E_RmtCmd.StartHub2 THEN
+			bStartHub[2] := TRUE;
+		ELSIF _eRmtCmd = E_RmtCmd.StopHub1 THEN
+			bStartHub[1] := FALSE;
+		ELSIF _eRmtCmd = E_RmtCmd.StopHub2 THEN
+			bStartHub[2] := FALSE;
+		END_IF
+		
+		IF rtrigAutoOnOff.Q THEN
+			GVL_Misc.eApsState := E_ApsState.Auto;
+			fRefPos := fGyroPos;
+			//tonAutoOnOff(IN := FALSE);
+		END_IF
+		
+	E_ApsState.Auto:
+	
+		fPitchTargetPos := GVL_Misc.fPitchTargetPos;
+		// Starting and stopping the Hubs
+		IF _eRmtCmd = E_RmtCmd.StartHub1 THEN
+			bStartHub[1] := TRUE;
+		ELSIF _eRmtCmd = E_RmtCmd.StartHub2 THEN
+			bStartHub[2] := TRUE;
+		ELSIF _eRmtCmd = E_RmtCmd.StopHub1 THEN
+			bStartHub[1] := FALSE;
+		ELSIF _eRmtCmd = E_RmtCmd.StopHub2 THEN
+			bStartHub[2] := FALSE;
+		END_IF
+		
+		IF rtrigAutoOnOff.Q THEN
+			GVL_Misc.eApsState := E_ApsState.Manual;
+			//tonAutoOnOff(IN := FALSE);
+		END_IF
+		
+END_CASE]]></ST>
+      </Implementation>
+    </Action>
+  </POU>
+</TcPlcObject>

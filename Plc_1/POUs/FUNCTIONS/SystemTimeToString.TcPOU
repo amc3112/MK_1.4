@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <POU Name="SystemTimeToString" Id="{f6276bc8-3eea-4772-970c-7f8a7b5e456c}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION SystemTimeToString				: STRING(24) // Set length to n+1 for \0 termination
+
+VAR_INPUT
+	sPtr								: POINTER TO STRING;
+	nSystemTime							: ULINT;
+	bForFilename						: BOOL;
+END_VAR
+
+VAR
+	tFileTimePtr						: POINTER TO T_FILETIME := ADR(nSystemTime);
+	nPtr								: POINTER TO USINT := sPtr;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+sPtr^ := SYSTEMTIME_TO_STRING( FILETIME_TO_SYSTEMTIME(tFileTimePtr^) );
+
+// YYYY-MM-DD-hh:mm:ss.xxx
+IF bForFilename THEN
+	nPtr[10] := 16#5F; // '_'
+	nPtr[13] := 16#5F; // '_'
+	nPtr[16] := 16#5F; // '_'
+	nPtr[19] := 16#5F; // '_'
+ELSE
+	nPtr[10] := 16#20; // ' '
+END_IF]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

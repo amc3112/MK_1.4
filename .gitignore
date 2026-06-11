@@ -1,0 +1,27 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.cache
+*.log
+
+# Build output
+bin/
+obj/
+Debug/
+Release/
+x64/
+x86/
+
+# TwinCAT generated/runtime files
+_Boot/
+_CompileInfo/
+*.tpy
+*.tmcRefac
+*.compileinfo
+*.compiled-library
+*.bak
+
+# Windows
+Thumbs.db
+Desktop.ini

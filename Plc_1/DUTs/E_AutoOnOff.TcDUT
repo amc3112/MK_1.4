@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_AutoOnOff" Id="{9e88f295-b52a-4097-a419-59447597fbf2}">
+    <Declaration><![CDATA[
+{attribute 'to_string'}
+TYPE E_AutoOnOff :
+(
+	Off := 0,
+	On
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

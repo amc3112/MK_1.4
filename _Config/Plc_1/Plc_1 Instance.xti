@@ -1,0 +1,200 @@
+<?xml version="1.0"?>
+<TcSmItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.beckhoff.com/schemas/2012/07/TcSmProject" TcSmVersion="1.0" TcVersion="3.1.4026.23" ClassName="CTComPlcObjDef">
+	<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" XtvPath="Plc_1\Plc_1 Instance.xtv" TmcPath="Plc_1\Plc_1.tmc">
+		<Name>__FILENAME__</Name>
+		<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
+		<UnrestoredVarLinks ImportTime="2026-05-02T18:26:00">
+			<OwnerA Name="InputDst" Prefix="TIPC^Plc_1^Plc_1 Instance" Type="1">
+				<OwnerB Name="TIPC^Plc_1^Plc_1 Instance">
+					<Link VarA="FAST.fRefPosition" TypeA="BOOL" InOutA="0" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="PlcTask Outputs^MAIN.fRefPosition" Size="1" RestoreInfo="ANotFound"/>
+				</OwnerB>
+			</OwnerA>
+		</UnrestoredVarLinks>
+		<UnrestoredVarLinks ImportTime="2026-05-03T00:59:09">
+			<OwnerA Name="InputDst" Prefix="TIPC^Plc_1^Plc_1 Instance" Type="1">
+				<OwnerB Name="TIID^GYRO^Box 15 (EP3751-0260)">
+					<Link VarA="FAST.fbGyro.fGyroVelRawY" TypeA="REAL" InOutA="0" GuidA="{18071995-0000-0000-0000-00000000000D}" VarB="AI Gyro Y Samples 1 (Real32)^Samples[0]" RestoreInfo="ANotFound"/>
+				</OwnerB>
+			</OwnerA>
+		</UnrestoredVarLinks>
+		<UnrestoredVarLinks ImportTime="2026-05-04T23:32:50">
+			<OwnerA Name="InputDst" Prefix="TIPC^Plc_1^Plc_1 Instance" Type="1">
+				<OwnerB Name="TIPC^Plc_1^Plc_1 Instance">
+					<Link VarA="FAST.bResetGyroPos" TypeA="BOOL" InOutA="0" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="PlcTask Outputs^MAIN.bResetGyroPos" RestoreInfo="ANotFound"/>
+				</OwnerB>
+			</OwnerA>
+		</UnrestoredVarLinks>
+		<UnrestoredVarLinks ImportTime="2026-05-05T00:30:54">
+			<OwnerA Name="InputDst" Prefix="TIPC^Plc_1^Plc_1 Instance" Type="1">
+				<OwnerB Name="TIPC^Plc_1^Plc_1 Instance">
+					<Link VarA="FAST.bCalibrateGyro" TypeA="BOOL" InOutA="0" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="PlcTask Outputs^MAIN.bCalibrateGyro" RestoreInfo="ANotFound"/>
+					<Link VarA="FAST.bResetGyro" TypeA="BOOL" InOutA="0" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="PlcTask Outputs^MAIN.bResetGyroPos" RestoreInfo="ANotFound"/>
+				</OwnerB>
+			</OwnerA>
+			<OwnerA Name="OutputSrc" Prefix="TIPC^Plc_1^Plc_1 Instance" Type="2">
+				<OwnerB Name="TIPC^Plc_1^Plc_1 Instance">
+					<Link VarA="FAST.fGyroPos" TypeA="LREAL" InOutA="1" GuidA="{18071995-0000-0000-0000-00000000000E}" VarB="PlcTask Inputs^MAIN.fGyroPos" RestoreInfo="ANotFound"/>
+					<Link VarA="FAST.fGyroVel" TypeA="LREAL" InOutA="1" GuidA="{18071995-0000-0000-0000-00000000000E}" VarB="PlcTask Inputs^MAIN.fGyroVel" RestoreInfo="ANotFound"/>
+				</OwnerB>
+			</OwnerA>
+		</UnrestoredVarLinks>
+		<Contexts>
+			<Context>
+				<Id>0</Id>
+				<Name>FastTask</Name>
+				<ManualConfig>
+					<OTCID>#x02010040</OTCID>
+				</ManualConfig>
+				<Priority>1</Priority>
+				<CycleTime>250000</CycleTime>
+			</Context>
+			<Context>
+				<Id>1</Id>
+				<Name>PlcTask</Name>
+				<ManualConfig>
+					<OTCID>#x02010030</OTCID>
+				</ManualConfig>
+				<Priority>20</Priority>
+				<CycleTime>1000000</CycleTime>
+			</Context>
+		</Contexts>
+		<TaskPouOids>
+			<TaskPouOid Prio="1" OTCID="#x08502002"/>
+			<TaskPouOid Prio="20" OTCID="#x08502001"/>
+		</TaskPouOids>
+	</Instance>
+	<Mappings>
+		<OwnerA>
+			<OwnerB Name="TIID^GYRO^Box 15 (EP3751-0260)">
+				<Link VarA="FastTask Inputs^FAST.fbGyro.fGyroTemp" VarB="AI Sensor Temperature (Real)^Value (Real32)"/>
+				<Link VarA="FastTask Inputs^FAST.fbGyro.fGyroVelRawReal" VarB="AI Gyro Y Samples 1 (Real32)^Samples[0]"/>
+			</OwnerB>
+			<OwnerB Name="TIID^IO MODULES^K810 (EK1200)^K811 (EL7031-0030)">
+				<Link VarA="PlcTask Inputs^MAIN.fbPitchMotor[1].stPitchStat^Error" VarB="STM Status^Status^Error" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbPitchMotor[1].stPitchStat^MovingNegative" VarB="STM Status^Status^Moving negative" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbPitchMotor[1].stPitchStat^MovingPositive" VarB="STM Status^Status^Moving positive" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbPitchMotor[1].stPitchStat^Ready" VarB="STM Status^Status^Ready" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbPitchMotor[1].stPitchStat^ReadyToEnable" VarB="STM Status^Status^Ready to enable" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbPitchMotor[1].stPitchStat^SyncError" VarB="STM Status^Status^Sync error" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbPitchMotor[1].stPitchStat^TorqueReduced" VarB="STM Status^Status^Torque reduced" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbPitchMotor[1].stPitchStat^Warning" VarB="STM Status^Status^Warning" Size="1"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbPitchMotor[1].stPitchCtrl^Enable" VarB="STM Control^Control^Enable" Size="1"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbPitchMotor[1].stPitchCtrl^ReduceTorque" VarB="STM Control^Control^Reduce torque" Size="1"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbPitchMotor[1].stPitchCtrl^Reset" VarB="STM Control^Control^Reset" Size="1"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbPitchMotor[1].stPitchCtrl^Velocity" VarB="STM Velocity^Velocity"/>
+			</OwnerB>
+			<OwnerB Name="TIID^IO MODULES^K810 (EK1200)^K812 (EL7031-0030)">
+				<Link VarA="PlcTask Inputs^MAIN.fbPitchMotor[2].stPitchStat^Error" VarB="STM Status^Status^Error" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbPitchMotor[2].stPitchStat^MovingNegative" VarB="STM Status^Status^Moving negative" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbPitchMotor[2].stPitchStat^MovingPositive" VarB="STM Status^Status^Moving positive" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbPitchMotor[2].stPitchStat^Ready" VarB="STM Status^Status^Ready" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbPitchMotor[2].stPitchStat^ReadyToEnable" VarB="STM Status^Status^Ready to enable" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbPitchMotor[2].stPitchStat^SyncError" VarB="STM Status^Status^Sync error" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbPitchMotor[2].stPitchStat^TorqueReduced" VarB="STM Status^Status^Torque reduced" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbPitchMotor[2].stPitchStat^Warning" VarB="STM Status^Status^Warning" Size="1"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbPitchMotor[2].stPitchCtrl^Enable" VarB="STM Control^Control^Enable" Size="1"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbPitchMotor[2].stPitchCtrl^ReduceTorque" VarB="STM Control^Control^Reduce torque" Size="1"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbPitchMotor[2].stPitchCtrl^Reset" VarB="STM Control^Control^Reset" Size="1"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbPitchMotor[2].stPitchCtrl^Velocity" VarB="STM Velocity^Velocity"/>
+			</OwnerB>
+			<OwnerB Name="TIID^IO MODULES^K810 (EK1200)^K813 (EL1008)">
+				<Link VarA="PlcTask Inputs^MAIN.b24V1Ok" VarB="Channel 1^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.b24V2Ok" VarB="Channel 2^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbThrustMotor[1].bPtoSensorOk" VarB="Channel 3^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbThrustMotor[2].bPtoSensorOk" VarB="Channel 4^Input" Size="1"/>
+			</OwnerB>
+			<OwnerB Name="TIID^IO MODULES^K810 (EK1200)^K814 (EL2008)">
+				<Link VarA="PlcTask Outputs^MAIN.bGreenLight" VarB="Channel 1^Output" Size="1"/>
+				<Link VarA="PlcTask Outputs^MAIN.bWarningBuzzer" VarB="Channel 5^Output" Size="1"/>
+			</OwnerB>
+			<OwnerB Name="TIID^IO MODULES^K810 (EK1200)^K815 (EL1008)">
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[1].abRmtBtn[0]" VarB="Channel 1^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[1].abRmtBtn[1]" VarB="Channel 2^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[1].abRmtBtn[2]" VarB="Channel 3^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[1].abRmtBtn[3]" VarB="Channel 4^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[1].abRmtBtn[4]" VarB="Channel 5^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[1].abRmtBtn[5]" VarB="Channel 6^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[1].abRmtBtn[6]" VarB="Channel 7^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[1].abRmtBtn[7]" VarB="Channel 8^Input" Size="1"/>
+			</OwnerB>
+			<OwnerB Name="TIID^IO MODULES^K810 (EK1200)^K816 (EL1008)">
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[1].abRmtBtn[10]" VarB="Channel 3^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[1].abRmtBtn[8]" VarB="Channel 1^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[1].abRmtBtn[9]" VarB="Channel 2^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[1].bOn" VarB="Channel 8^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[1].bStop" VarB="Channel 7^Input" Size="1"/>
+			</OwnerB>
+			<OwnerB Name="TIID^IO MODULES^K810 (EK1200)^K817 (EL2008)">
+				<Link VarA="PlcTask Outputs^MAIN.fbRemote[1].stRmtLed^Alarm" VarB="Channel 5^Output" Size="1"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbRemote[1].stRmtLed^Hub1" VarB="Channel 1^Output" Size="1"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbRemote[1].stRmtLed^Hub2" VarB="Channel 4^Output" Size="1"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbRemote[1].stRmtLed^InControl" VarB="Channel 3^Output" Size="1"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbRemote[1].stRmtLed^On" VarB="Channel 2^Output" Size="1"/>
+			</OwnerB>
+			<OwnerB Name="TIID^IO MODULES^K810 (EK1200)^K820 (EL1008)">
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[2].abRmtBtn[0]" VarB="Channel 1^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[2].abRmtBtn[1]" VarB="Channel 2^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[2].abRmtBtn[2]" VarB="Channel 3^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[2].abRmtBtn[3]" VarB="Channel 4^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[2].abRmtBtn[4]" VarB="Channel 5^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[2].abRmtBtn[5]" VarB="Channel 6^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[2].abRmtBtn[6]" VarB="Channel 7^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[2].abRmtBtn[7]" VarB="Channel 8^Input" Size="1"/>
+			</OwnerB>
+			<OwnerB Name="TIID^IO MODULES^K810 (EK1200)^K821 (EL1008)">
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[2].abRmtBtn[10]" VarB="Channel 3^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[2].abRmtBtn[8]" VarB="Channel 1^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[2].abRmtBtn[9]" VarB="Channel 2^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[2].bOn" VarB="Channel 8^Input" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbRemote[2].bStop" VarB="Channel 7^Input" Size="1"/>
+			</OwnerB>
+			<OwnerB Name="TIID^IO MODULES^K810 (EK1200)^K822 (EL2008)">
+				<Link VarA="PlcTask Outputs^MAIN.fbRemote[2].stRmtLed^Alarm" VarB="Channel 5^Output" Size="1"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbRemote[2].stRmtLed^Hub1" VarB="Channel 1^Output" Size="1"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbRemote[2].stRmtLed^Hub2" VarB="Channel 4^Output" Size="1"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbRemote[2].stRmtLed^InControl" VarB="Channel 3^Output" Size="1"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbRemote[2].stRmtLed^On" VarB="Channel 2^Output" Size="1"/>
+			</OwnerB>
+			<OwnerB Name="TIID^IO MODULES^K810 (EK1200)^K823 (EL6224)">
+				<Link VarA="PlcTask Inputs^MAIN.fbEncoder[1].bMeasurementValueUnsafe" VarB="IO-Link Port1^Measurement Value Unsafe" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbEncoder[1].bNoMeasurementData" VarB="IO-Link Port1^Out of Range/No Measurement Data" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbEncoder[1].bOutOfMeasurementRange" VarB="IO-Link Port1^Out of Measurement Range" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbEncoder[1].bSystemError" VarB="IO-Link Port1^System Error" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbEncoder[1].nMeasurementValue" VarB="IO-Link Port1^Measurement Value"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbEncoder[1].nScalingFactor" VarB="IO-Link Port1^Scaling Factor"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbEncoder[1].nStateIo" VarB="DeviceState Inputs^State Ch1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbEncoder[2].bMeasurementValueUnsafe" VarB="IO-Link Port2^Measurement Value Unsafe" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbEncoder[2].bNoMeasurementData" VarB="IO-Link Port2^Out of Range/No Measurement Data" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbEncoder[2].bOutOfMeasurementRange" VarB="IO-Link Port2^Out of Measurement Range" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbEncoder[2].bSystemError" VarB="IO-Link Port2^System Error" Size="1"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbEncoder[2].nMeasurementValue" VarB="IO-Link Port2^Measurement Value"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbEncoder[2].nScalingFactor" VarB="IO-Link Port2^Scaling Factor"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbEncoder[2].nStateIo" VarB="DeviceState Inputs^State Ch2"/>
+			</OwnerB>
+			<OwnerB Name="TIID^VFD 1^Delta MS300">
+				<Link VarA="PlcTask Inputs^MAIN.fbThrustMotor[1].fbVfd.nActualCurrent" VarB="2nd TxPDO Mapping^[ 2104h ]Output current"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbThrustMotor[1].fbVfd.nActualPower" VarB="2nd TxPDO Mapping^[ 210Fh ]Power output"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbThrustMotor[1].fbVfd.nActualVelocity" VarB="2nd TxPDO Mapping^[ 2207h ]motor speed in rpm estimated"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbThrustMotor[1].fbVfd.nModeOperationStat" VarB="1st TxPDO Mapping^Mode Of Operation Display"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbThrustMotor[1].fbVfd.nStatusWord" VarB="1st TxPDO Mapping^Status Word"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbThrustMotor[1].fbVfd.nControlWord" VarB="1st RxPDO Mapping^Control Word"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbThrustMotor[1].fbVfd.nModeOperationCtrl" VarB="1st RxPDO Mapping^Mode Of Operation"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbThrustMotor[1].fbVfd.nRampDownTime" VarB="2nd Receive PDO mapping^vl Ramp down time"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbThrustMotor[1].fbVfd.nRampUpTime" VarB="2nd Receive PDO mapping^vl Ramp up time"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbThrustMotor[1].fbVfd.nTargetVelocity" VarB="1st RxPDO Mapping^vl target velocity"/>
+			</OwnerB>
+			<OwnerB Name="TIID^VFD 2^Delta MS300">
+				<Link VarA="PlcTask Inputs^MAIN.fbThrustMotor[2].fbVfd.nActualCurrent" VarB="2nd TxPDO Mapping^[ 2104h ]Output current"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbThrustMotor[2].fbVfd.nActualPower" VarB="2nd TxPDO Mapping^[ 210Fh ]Power output"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbThrustMotor[2].fbVfd.nActualVelocity" VarB="2nd TxPDO Mapping^[ 2207h ]motor speed in rpm estimated"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbThrustMotor[2].fbVfd.nModeOperationStat" VarB="1st TxPDO Mapping^Mode Of Operation Display"/>
+				<Link VarA="PlcTask Inputs^MAIN.fbThrustMotor[2].fbVfd.nStatusWord" VarB="1st TxPDO Mapping^Status Word"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbThrustMotor[2].fbVfd.nControlWord" VarB="1st RxPDO Mapping^Control Word"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbThrustMotor[2].fbVfd.nModeOperationCtrl" VarB="1st RxPDO Mapping^Mode Of Operation"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbThrustMotor[2].fbVfd.nRampDownTime" VarB="2nd Receive PDO mapping^vl Ramp down time"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbThrustMotor[2].fbVfd.nRampUpTime" VarB="2nd Receive PDO mapping^vl Ramp up time"/>
+				<Link VarA="PlcTask Outputs^MAIN.fbThrustMotor[2].fbVfd.nTargetVelocity" VarB="1st RxPDO Mapping^vl target velocity"/>
+			</OwnerB>
+		</OwnerA>
+	</Mappings>
+</TcSmItem>

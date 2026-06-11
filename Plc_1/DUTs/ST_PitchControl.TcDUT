@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_PitchControl" Id="{7019d56a-699f-4bcd-8d6a-2cbfa712afee}">
+    <Declaration><![CDATA[TYPE ST_PitchControl :
+STRUCT
+	Enable: BOOL;
+	Reset: BOOL;
+	ReduceTorque: BOOL;
+	Velocity: INT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

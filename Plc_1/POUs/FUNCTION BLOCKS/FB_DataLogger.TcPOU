@@ -1,0 +1,256 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <POU Name="FB_DataLogger" Id="{8fc04d95-3d74-4ea5-8cd4-0d2e022de6e3}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_DataLogger
+
+VAR_INPUT
+	bEnableLogging						: BOOL;
+END_VAR
+VAR
+	nState								: USINT;
+	
+	fbFileOpen							: FB_FileOpen;
+	fbFilePuts							: FB_FilePuts;
+	fbFileClose							: FB_FileClose;
+	
+	nCreationTime						: ULINT;
+	nNextEntryWrTime					: ULINT;
+	nTimeNow							: ULINT;
+	sGpString							: STRING(24); // LREAL_TO_FMTSTR messes UP when writting directly to sPtr^. Fucking B...
+	sPtr								: POINTER TO T_MaxString;
+	nPtr								: POINTER TO USINT;
+END_VAR
+
+VAR CONSTANT
+	sFILE_PATH							: STRING(30) := '/home/Administrator/datalogs/'; // Set length to n+1 for \0 termination
+	sBASE_FILENAME						: STRING(21) := 'APS Datalog '; // Set length to n+1 for \0 termination
+	nWRITE_PERIOD						: UDINT := 2500000; // x100 ns
+	tFILE_FUN_TOUT						: TIME := T#2S;//:= T#100MS;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+
+CASE nState OF
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	0: // Include the creation time in the filename and open new file 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	IF bEnableLogging THEN
+		nCreationTime := F_GetSystemTime() + nWRITE_PERIOD;
+		nNextEntryWrTime := nCreationTime;
+		fbFileOpen( bExecute := FALSE );
+		sPtr := ADR( fbFileOpen.sPathName );
+		
+		sPtr^ := sFILE_PATH;
+		StrPtrToStrEnd( '', sPtr );
+		sPtr^ := sBASE_FILENAME;
+		StrPtrToStrEnd( '', sPtr );
+		SystemTimeToString( sPtr, nCreationTime, TRUE );
+		StrPtrToStrEnd( '', sPtr );
+		sPtr^ := '.txt';
+		
+		fbFileOpen(
+			nMode := FOPEN_MODEAPPEND OR FOPEN_MODETEXT,
+			ePath := PATH_GENERIC,
+			tTimeout := tFILE_FUN_TOUT,
+			bExecute := TRUE );
+		nState := 1;
+	END_IF
+	
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	1: // Add header at the first lines in the file
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	fbFileOpen();
+	IF NOT (fbFileOpen.bBusy OR fbFilePuts.bBusy) THEN
+		IF fbFileOpen.bError OR NOT bEnableLogging THEN
+			nState := 6;
+		ELSE
+			fbFilePuts( bExecute := FALSE );
+			sPtr := ADR( fbFilePuts.sLine );
+			
+			fbFilePuts(
+				hFile := fbFileOpen.hFile,
+				tTimeout := tFILE_FUN_TOUT,
+				bExecute := TRUE );
+			nState := 2;
+		END_IF
+	END_IF
+	
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	2: // Add line with names of the data fields
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	fbFilePuts();
+	IF NOT fbFilePuts.bBusy THEN
+		IF fbFilePuts.bError OR NOT bEnableLogging THEN
+			nState := 6;
+		ELSE
+			fbFilePuts( bExecute := FALSE );
+			fbFilePuts.sLine := '$LTime,Hub 1 Power,Hub 2 Power,Hub 1 Current,Hub2 Current,Encoder 1 Pos.,Encoder 2 Pos.,Pos. Ref.,Pos. Est.,Vel. Est.,Remote 1 Cmd,Remote 2 Cmd,APS Mode';
+			fbFilePuts( bExecute := TRUE );
+			nState := 3;
+		END_IF
+	END_IF
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	22: // Add line with names of the data fields
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	fbFilePuts();
+	IF NOT fbFilePuts.bBusy THEN
+		IF fbFilePuts.bError OR NOT bEnableLogging THEN
+			nState := 6;
+		ELSE
+			fbFilePuts( bExecute := FALSE );
+			fbFilePuts.sLine := ',Operation Mode';
+			fbFilePuts( bExecute := TRUE );
+			nState := 3;
+		END_IF
+	END_IF
+	
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	3: // Add line with units of the data fields
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	fbFilePuts();
+	IF NOT fbFilePuts.bBusy THEN
+		IF fbFilePuts.bError OR NOT bEnableLogging THEN
+			nState := 6;
+		ELSE
+			fbFilePuts( bExecute := FALSE );
+			fbFilePuts.sLine := '$L[-],[kW],[kW],[A],[A],[°],[°],[°],[°],[°/s],[-],[-], [-]';
+			fbFilePuts( bExecute := TRUE );
+			nState := 4;
+		END_IF
+	END_IF
+	
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	4: // Finish writing
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	fbFilePuts();
+	IF NOT fbFilePuts.bBusy THEN
+		IF fbFilePuts.bError OR NOT bEnableLogging THEN
+			nState := 6;
+		ELSE
+			nState := 5;
+		END_IF
+	END_IF
+	
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	5: // Add new data entry
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	IF bEnableLogging THEN
+		nTimeNow := F_GetSystemTime();
+		IF nTimeNow >= nNextEntryWrTime THEN
+		
+			nNextEntryWrTime := nNextEntryWrTime + nWRITE_PERIOD;
+			fbFilePuts( bExecute := FALSE );
+			sPtr := ADR( fbFilePuts.sLine );
+			
+			fbFilePuts.sLine := '$L';
+			SystemTimeToString( ADR(sGpString), nTimeNow, FALSE );
+			MEMCPY( sPtr+1, ADR(sGpString)+11, 12 );
+			sPtr := sPtr + 13;
+			sPtr^ := ',';
+			sPtr := sPtr + 1;
+			
+			sGpString := LREAL_TO_FMTSTR( MAIN.fbThrustMotor[1].stVfdOut.ActualPower, 1, TRUE ); // Root Hub Power
+			sPtr^ := sGpString;
+			StrPtrToStrEnd( ',', sPtr );
+			sGpString := LREAL_TO_FMTSTR( MAIN.fbThrustMotor[2].stVfdOut.ActualPower, 1, TRUE ); // Tip Hub Power
+			sPtr^ := sGpString;
+			StrPtrToStrEnd( ',', sPtr );
+		
+			sGpString := LREAL_TO_FMTSTR( MAIN.fbThrustMotor[1].stVfdOut.ActualCurrent, 1, TRUE ); // Root Hub Current
+			sPtr^ := sGpString;
+			StrPtrToStrEnd( ',', sPtr );
+			sGpString := LREAL_TO_FMTSTR( MAIN.fbThrustMotor[2].stVfdOut.ActualCurrent, 1, TRUE ); // Tip Hub Current
+			sPtr^ := sGpString;
+			StrPtrToStrEnd( ',', sPtr );
+			
+			sGpString := LREAL_TO_FMTSTR( MAIN.fbPitchMotor[1].fActPitchPos, 0, TRUE ); // Encoder Position
+			sPtr^ := sGpString;
+			StrPtrToStrEnd( ',', sPtr );
+			sGpString := LREAL_TO_FMTSTR( MAIN.fbPitchMotor[2].fActPitchPos, 0, TRUE ); // Encoder Position
+			sPtr^ := sGpString;
+			StrPtrToStrEnd( ',', sPtr );
+			
+			sGpString := LREAL_TO_FMTSTR( GVL_Gyro.fSetPoint, 2, TRUE ); // Pos. Ref.
+			sPtr^ := sGpString;
+			StrPtrToStrEnd( ',', sPtr );
+			sGpString := LREAL_TO_FMTSTR( GVL_Gyro.fGyroPos, 2, TRUE ); // Pos. Est.
+			sPtr^ := sGpString;
+			StrPtrToStrEnd( ',', sPtr );
+			
+			sGpString := LREAL_TO_FMTSTR( GVL_Gyro.fGyroVel, 2, TRUE ); // Vel. Ref.
+			sPtr^ := sGpString;
+			StrPtrToStrEnd( ',', sPtr );
+			
+			sGpString := WORD_TO_STRING( TO_WORD(MAIN.fbRemote[1].nBtnSum) ); // Remote Hub Full
+			sPtr^ := sGpString;
+			StrPtrToStrEnd( ',', sPtr );
+			sGpString := WORD_TO_STRING( TO_WORD(MAIN.fbRemote[2].nBtnSum) ); // Remote Hub Halv
+			sPtr^ := sGpString;
+			StrPtrToStrEnd( ',', sPtr );
+
+
+			IF GVL_Misc.eApsState = E_ApsState.Auto THEN
+				sGpString := 'Auto'; // Operation Mode
+				sPtr^ := sGpString;
+			ELSIF GVL_Misc.eApsState = E_ApsState.Manual THEN
+				sGpString := 'Manuel'; // Operation Mode
+				sPtr^ := sGpString;			
+			ELSIF GVL_Misc.eApsState = E_ApsState.Off THEN
+				sGpString := 'Off'; // Operation Mode
+				sPtr^ := sGpString;					
+			END_IF
+		
+			fbFilePuts( bExecute := TRUE );
+			nState := 4;
+		END_IF
+	ELSE
+		nState := 6;
+	END_IF
+	
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	6: // Close file
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	fbFileOpen();
+	fbFilePuts();
+	fbFileClose();
+	IF NOT (fbFileOpen.bBusy OR fbFilePuts.bBusy OR fbFileClose.bBusy) THEN
+		fbFileClose( bExecute := FALSE );
+		fbFileClose(
+			hFile := fbFileOpen.hFile,
+			tTimeout := tFILE_FUN_TOUT,
+			bExecute := TRUE );
+		nState := 7;
+	END_IF
+	
+	7:
+	fbFileClose();
+	IF NOT fbFileClose.bBusy THEN
+		nState := 0;
+	END_IF
+END_CASE
+
+]]></ST>
+    </Implementation>
+    <Method Name="StrPtrToStrEnd" Id="{9fee75f1-e8c8-482e-b932-c97b87950aec}">
+      <Declaration><![CDATA[METHOD PRIVATE StrPtrToStrEnd
+
+VAR_INPUT
+	sSep								: STRING(1);
+END_VAR
+
+VAR_IN_OUT
+	sDst								: POINTER TO STRING;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+sDst := sDst + LEN2( sDst );
+IF sSep <> '' THEN
+	sDst^ := sSep;
+	sDst := sDst + 1;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

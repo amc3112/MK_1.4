@@ -1,0 +1,216 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <POU Name="FB_PitchMotor" Id="{1978b9e2-23ec-4817-861e-b376124e42ff}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_PitchMotor
+VAR_INPUT
+	bEnable: BOOL;
+	bReset: BOOL;
+	bReduceTorque: BOOL;
+
+	fTargetPos: LREAL; // [deg]
+	nEncPos: DINT; // [μm]
+	
+	fPitchLimit: LREAL;
+END_VAR
+VAR_OUTPUT
+	bReady: BOOL;
+	bError: BOOL;
+	
+	fActPitchPos: LREAL;
+END_VAR
+VAR
+	stPitchCtrl AT %Q*: ST_PitchControl;
+	stPitchStat AT %I*: ST_PitchStatus;
+	
+	bHomed: BOOL;
+	nHomingState: INT;
+	tonHoming: TON := (PT := tHOMING);
+	
+	nPitchingState: INT;
+	
+	_nEncPos: DINT;
+	nCnt: INT;
+	
+	nEndstopPosition: DINT;
+	fMinPos: LREAL;
+	fMaxPos: LREAL;
+	
+	fbDegToUm: FB_LinTrafo;
+	fbUmToDeg: FB_LinTrafo;
+	
+	fTempTargetPos: LREAL;
+	nTargetPos: LREAL;
+END_VAR
+VAR CONSTANT
+	tHOMING: TIME := T#10S;
+	
+	nMAX_VELOCITY: INT := 28800; // [steps/s]
+	
+	nSTOP_LIMIT: LREAL := 150; // [μm] = [0.15 mm]
+	
+	nENC_JITTER: DINT := 150; // [μm]
+	
+	nZERO_TO_MAX_PITCH: DINT := 10400; // [μm]
+	
+	fPITCH_ARM_LENGTH: REAL := 40000.0; // [μm]T := 
+END_VAR
+
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// bEnable will be set to bEstopOk in MAIN
+stPitchCtrl.Enable := stPitchStat.ReadyToEnable AND bEnable;
+
+// Reset Output Variables
+IF NOT bEnable THEN 
+	bReady := FALSE;
+	bError := FALSE;
+	bHomed := FALSE;
+END_IF
+
+// Timer to check if Pitch Motor is stuck
+tonHoming(IN := NOT bHomed AND stPitchCtrl.Enable);
+IF tonHoming.Q THEN
+	stPitchCtrl.Enable := FALSE;
+	bError := TRUE;
+END_IF
+
+// If Pitch Motor is Enabaled but not Homed
+IF NOT bHomed AND stPitchCtrl.Enable THEN	
+	A_Homing();
+// When Homed the Pitch Motor becomes operational
+ELSIF bHomed AND stPitchCtrl.Enable THEN
+	bReady := TRUE;
+END_IF
+
+// Error and Reset Handling
+IF stPitchStat.Error THEN
+	stPitchCtrl.Enable := FALSE;
+	bError := TRUE;
+	bReady := FALSE;
+END_IF
+
+stPitchCtrl.Reset := stPitchStat.Error OR bReset;
+IF stPitchCtrl.Reset THEN stPitchCtrl.Enable := FALSE; END_IF
+
+// Reduce Torque when Pitch Motor is just holding
+IF bReady AND NOT (stPitchStat.MovingPositive OR stPitchStat.MovingNegative) THEN
+	stPitchCtrl.ReduceTorque := TRUE;
+ELSE
+	stPitchCtrl.ReduceTorque := FALSE;
+END_IF
+fTargetPos := LIMIT(-GVL_Constant.fPITCH_LIMIT, fTargetPos, GVL_Constant.fPITCH_LIMIT);
+IF bReady THEN
+	// Convert Angle-Degrees to Micro-Meters
+	fbDegToUm(
+		fInputValue := fTargetPos,
+		fInMin := -fPitchLimit,
+		fInMax := fPitchLimit,
+		fOutMin := fMinPos,
+		fOutMax := fMaxPos,
+		fOutputValue => fTempTargetPos
+		);
+	
+	// Change Data Type
+	nTargetPos := TO_DINT(fTempTargetPos);
+	
+	// Convert MicroMeters to Angle-Degrees
+	fbUmToDeg(
+		fInputValue := TO_LREAL(nEncPos),
+		fInMin := fMinPos,
+		fInMax := fMaxPos,
+		fOutMin := -fPitchLimit,
+		fOutMax := fPitchLimit,
+		fOutputValue => fActPitchPos
+		);
+	
+	// Handlse all movement after Homing is completed
+	A_Pitching();
+END_IF]]></ST>
+    </Implementation>
+    <Action Name="A_Homing" Id="{21574937-10bc-4cdc-8371-c28b6a535869}">
+      <Implementation>
+        <ST><![CDATA[CASE nHomingState OF
+	000:	// Start stepper motor in negative direction
+			stPitchCtrl.Velocity := -nMAX_VELOCITY;
+			
+			// Making sure stepper motor is running
+			IF stPitchStat.MovingNegative THEN
+				nHomingState := 010;
+			END_IF
+			
+	010:	// Montitor when reaching mechanical endstop
+			IF _nEncPos <= nEncPos  AND nEncPos <= 25000 THEN
+				nCnt := nCnt + 1;
+			ELSE
+				nCnt := 0;
+			END_IF
+			
+			IF nCnt >= 10 THEN
+				stPitchCtrl.Velocity := 0;
+				nCnt := 0;
+				nEndstopPosition := nEncPos;
+				nHomingState := 020;
+			END_IF
+			
+	020:	// Start stepper motor in positive direction
+			stPitchCtrl.Velocity := nMAX_VELOCITY;
+			
+			// Make sure stepper motor is running
+			IF stPitchStat.MovingPositive THEN
+				nHomingState := 030;
+			END_IF
+			
+	030:	// Stop stepper motor in center position (Pitch = 0 deg)
+			IF nEncPos >= nEndstopPosition + nZERO_TO_MAX_PITCH - nSTOP_LIMIT THEN
+				stPitchCtrl.Velocity := 0;
+				nHomingState := 000;
+				bHomed := TRUE;
+				
+				// Values used for converting between linear and rotational movement
+				fMinPos := TO_REAL(nEndstopPosition + nZERO_TO_MAX_PITCH) - SIN(GVL_Constant.fPITCH_LIMIT * pi / 180.0) * fPITCH_ARM_LENGTH;
+				fMaxPos := TO_REAL(nEndstopPosition + nZERO_TO_MAX_PITCH) + SIN(GVL_Constant.fPITCH_LIMIT * pi / 180.0) * fPITCH_ARM_LENGTH;
+			END_IF
+END_CASE
+
+_nEncPos := nEncPos;]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Pitching" Id="{296badd6-b81a-44fe-a4eb-a0b43edd684f}">
+      <Implementation>
+        <ST><![CDATA[CASE nPitchingState OF
+	000:	// Idle - waiting for pitch command
+			stPitchCtrl.Velocity := 0;
+			IF nTargetPos < nEncPos - nENC_JITTER THEN
+				nPitchingState := 010; // Negative direction
+			ELSIF nTargetPos >= nEncPos + nENC_JITTER THEN
+				nPitchingState := 020; // Positive direction
+			END_IF
+			
+	010:	// --- MOVING IN NEGATIVE DIRECTION ---
+			stPitchCtrl.Velocity := -nMAX_VELOCITY;
+			IF stPitchStat.MovingNegative THEN
+				nPitchingState := 015;
+			END_IF
+			
+	015:	// --- STOP AT TARGET POSITION ---
+			IF nTargetPos >= nEncPos - nSTOP_LIMIT THEN
+				stPitchCtrl.Velocity := 0;
+				nPitchingState := 000;
+			END_IF
+			
+	020:	// --- MOVING IN POSITIVE DIRECTION ---
+			stPitchCtrl.Velocity := nMAX_VELOCITY;
+			IF stPitchStat.MovingPositive THEN
+				nPitchingState := 025;
+			END_IF
+			
+	025:	// --- STOP AT TARGET POSITION ---
+			IF nTargetPos <= nEncPos + nSTOP_LIMIT THEN
+				stPitchCtrl.Velocity := 0;
+				nPitchingState := 000;
+			END_IF
+END_CASE]]></ST>
+      </Implementation>
+    </Action>
+  </POU>
+</TcPlcObject>

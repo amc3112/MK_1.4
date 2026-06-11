@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <POU Name="FB_ThrustMotor" Id="{bb1b1119-c51b-4b56-ba76-7c6a210bb5a0}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_ThrustMotor
+VAR_INPUT
+	bStart: BOOL;
+	bEnable: BOOL;
+	
+	fRotationSpeed: REAL := 1500; // [rpm]
+END_VAR
+VAR_OUTPUT
+	stVfdOut: ST_Delta_MS300_Output;
+	bBrakeNotReleasedError: BOOL;
+	bPtoSensorError: BOOL;
+END_VAR
+VAR
+	fbVfd: FB_Delta_MS300;
+	bPtoSensorOk AT %I*: BOOL;
+	
+	tonWaitAfterError: TON := (PT := tWAIT_AFTER_ERROR);
+	tonStartupCheck: TON := (PT := tSTARTUP_CHECK);
+END_VAR
+VAR CONSTANT
+	tWAIT_AFTER_ERROR: TIME := T#250MS;
+	tSTARTUP_CHECK: TIME := T#2S;
+	fMOTOR_CURRENT_NAME_TAG: REAL := 30.7; // [A]
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[stVfdOut := fbVfd.stOutput;
+// Motor parameters
+fbVfd.stInput.GearRatio := 1.0;
+fbVfd.stInput.RampDownTime := 10.0; // [s]
+fbVfd.stInput.RampUpTime := 10.0; // [s]
+fbVfd.stInput.Velocity := fRotationSpeed;
+fbVfd.stInput.Enable := bEnable;
+
+fbVfd();
+
+// Reset VFD in case of an Error
+tonWaitAfterError(IN := NOT fbVfd.stOutput.Fault);
+IF fbVfd.stOutput.Fault THEN	
+	bStart := FALSE;
+	fbVfd.stInput.Reset := TRUE;
+ELSE
+	fbVfd.stInput.Reset := FALSE;
+END_IF
+
+// VFD start conditions
+fbVfd.stInput.Start := 	bStart
+						AND bPtoSensorOk
+						AND tonWaitAfterError.Q
+						AND NOT bBrakeNotReleasedError;
+
+// Brake release control
+IF fbVfd.stOutput.RampingUp AND fbVfd.stOutput.ActualCurrent > fMOTOR_CURRENT_NAME_TAG * 1.1 THEN
+	bBrakeNotReleasedError := TRUE;
+ELSE
+	bBrakeNotReleasedError := FALSE;
+END_IF
+
+bPtoSensorError := NOT bPtoSensorOk;
+
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

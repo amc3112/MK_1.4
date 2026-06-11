@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_RmtCmd" Id="{d8c56b1d-c552-4fff-99e1-caa8327956bd}">
+    <Declaration><![CDATA[{attribute 'to_string'}
+TYPE E_RmtCmd :
+(
+	None := 0,
+	Ccw := 1,
+// 	ON := 2,
+	Cw := 4,
+	RequestControl := 5, // Ccw + Cw
+// 	Hub1 := 8,
+	StartHub1 := 10, // Hub1 + On
+	Off := 16, // Used for Estop
+	ResetEstop := 18, // On + Off for 2 seconds
+	StopHub1 := 24, // Hub1 + Off
+// 	Hub2 := 32,
+	StartHub2 := 34, // Hub2 + On
+	AutoOnOff := 40, // Hub1 + Hub2
+	StopHub2 := 48 // Hub2 + Off
+// 	L2B1 := 64,
+// 	L2B2 := 128,
+// 	L2B3 := 256,
+// 	L2B4 := 512,
+// 	L2B5 := 1024
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <GVL Name="GVL_Gyro" Id="{f0503b42-3aac-478a-a220-bc804b25f366}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	fGyroVel: LREAL;
+	fGyroPos: LREAL;
+	fGyroPosHmi: LREAL;
+	fSetPoint: LREAL;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <POU Name="FB_Controller" Id="{f63260c9-8bc4-41ed-93a0-33afe7bda121}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_Controller
+VAR_INPUT
+	bStart: BOOL;
+	bMovSpCcw: BOOL;
+	bMovSpCw: BOOL;
+	fGyroPos: LREAL;
+	fGyroVel: LREAL;
+	fPitchLimit: LREAL;
+END_VAR
+VAR_OUTPUT
+	fTargetPosition: LREAL;
+END_VAR
+VAR
+	bActive: BOOL;
+	fSetPoint: LREAL;
+	rtSetPoint: R_TRIG;
+	fError: LREAL;
+	fKp: LREAL := 1.2;
+	fKi: LREAL := 0.000002;
+	fKd: LREAL := 2.4;
+	fIntegral: LREAL;
+	fPidOutput: LREAL;
+	fCycleTime: LREAL := 0.0; // [s]
+	nTaskInfo: DINT;
+END_VAR
+VAR CONSTANT
+	fSETPOINT_JOG_VELOCITY: LREAL := 1.0; // [deg/s]
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[bActive := bStart;
+ 
+nTaskInfo := GETCURTASKINDEXEX();
+
+fCycleTime := TO_LREAL(_TaskInfo[nTaskInfo].CycleTime) / 1.0E7;
+ 
+rtSetPoint(CLK := bActive);
+
+IF rtSetPoint.Q THEN
+    fSetPoint := fGyroPos;
+    fError := 0.0;
+    fIntegral := 0.0;
+    fPidOutput := 0.0;
+    fTargetPosition := 0.0;
+END_IF
+ 
+IF NOT bActive THEN
+    fError := 0.0;
+    fIntegral := 0.0;
+    fPidOutput := 0.0;
+    fTargetPosition := 0.0;
+ELSE
+
+    IF bMovSpCcw AND NOT bMovSpCw THEN
+        fSetPoint := fSetPoint + fSETPOINT_JOG_VELOCITY * fCycleTime;
+    ELSIF bMovSpCw AND NOT bMovSpCcw THEN
+        fSetPoint := fSetPoint - fSETPOINT_JOG_VELOCITY * fCycleTime;
+    END_IF
+  	fSetPoint := LIMIT(fGyroPos - 10, fSetPoint, fGyroPos + 10);
+  
+    fError := fSetPoint - fGyroPos;
+
+    // Kun meget langsom position-retur
+    IF ABS(fError) > 0.05 THEN
+        fIntegral := fIntegral + fKi * fError * fCycleTime;
+    END_IF
+ 
+    fIntegral := LIMIT(-0.2 * fPitchLimit, fIntegral, 0.2 * fPitchLimit);
+
+    // Rate damping er hoveddelen: forsøg at holde gyro-hastighed = 0
+
+    fPidOutput :=
+        (fKp * fError)
+        + fIntegral
+        - (fKd * fGyroVel);
+ 
+    fTargetPosition := LIMIT(-fPitchLimit, fPidOutput, fPitchLimit);
+ 
+    // Anti-windup med D-led inkluderet
+
+    IF fTargetPosition <> fPidOutput THEN
+        fIntegral := fTargetPosition - (fKp * fError) + (fKd * fGyroVel);
+        fIntegral := LIMIT(-0.2 * fPitchLimit, fIntegral, 0.2 * fPitchLimit);
+    END_IF
+
+END_IF
+
+GVL_Gyro.fSetPoint := fSetPoint;
+ ]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

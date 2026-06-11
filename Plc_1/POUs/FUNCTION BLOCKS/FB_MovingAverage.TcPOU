@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <POU Name="FB_MovingAverage" Id="{502b291e-2a82-4f15-a351-a9739e261586}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_MovingAverage
+VAR_INPUT
+	bInit: BOOL;
+	bStart: BOOL;
+	fGyroVelRaw: LREAL;
+	fOffsetInit: LREAL;
+END_VAR
+VAR_OUTPUT
+	fOffset: LREAL;
+END_VAR
+VAR
+	ftStart: F_TRIG;
+	fCnt: LREAL;
+
+	fTempOffset: LREAL;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[ftStart(CLK := bStart);
+
+IF bStart THEN
+	fOffset := 0.0;
+	fTempOffset := (fTempOffset * fCnt + fGyroVelRaw) / (fCnt + 1.0);		
+	fCnt := fCnt + 1.0;
+ELSIF ftStart.Q THEN
+	fOffset := fTempOffset;
+	fTempOffset := 0.0;	
+	fCnt := 0;
+END_IF
+IF bInit THEN
+	fOffset := fOffsetInit;
+END_IF]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>
